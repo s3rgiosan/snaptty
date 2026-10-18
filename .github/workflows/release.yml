@@ -1,0 +1,47 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Check the app version matches the tag
+        run: |
+          for key in CFBundleShortVersionString CFBundleVersion; do
+            plist_version="$(/usr/libexec/PlistBuddy -c "Print :${key}" src/Info.plist)"
+            if [ "$plist_version" != "$GITHUB_REF_NAME" ]; then
+              echo "::error file=src/Info.plist::${key} is ${plist_version}, tag is ${GITHUB_REF_NAME}"
+              exit 1
+            fi
+          done
+
+      - name: Build the agent
+        run: swiftc -O src/snaptty-agent.swift -o "${RUNNER_TEMP}/snaptty-agent"
+
+      # Release notes are the tag's CHANGELOG.md section, up to the next
+      # version heading or the link references.
+      - name: Extract the release notes
+        run: |
+          awk -v version="$GITHUB_REF_NAME" '
+            index($0, "## [" version "]") == 1 { found = 1; next }
+            found && (/^## \[/ || /^\[[^]]+\]: /) { exit }
+            found { print }
+          ' CHANGELOG.md > "${RUNNER_TEMP}/notes.md"
+          if ! grep -q '[^[:space:]]' "${RUNNER_TEMP}/notes.md"; then
+            echo "::error file=CHANGELOG.md::No entry for ${GITHUB_REF_NAME}"
+            exit 1
+          fi
+
+      - name: Create the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --notes-file "${RUNNER_TEMP}/notes.md" --verify-tag

@@ -5,7 +5,7 @@ All notable changes to snaptty will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.0.0] - 2026-10-19
 
 ### Added
 
@@ -14,4 +14,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `install`, `install --no-clipboard` and `uninstall` commands.
 - App bundle with a name and icon, shown in Login Items and the folder access prompt.
 
-[Unreleased]: https://github.com/s3rgiosan/snaptty/commits/main
+[Unreleased]: https://github.com/s3rgiosan/snaptty/compare/1.0.0...HEAD
+[1.0.0]: https://github.com/s3rgiosan/snaptty/releases/tag/1.0.0
