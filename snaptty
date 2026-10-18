@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # snaptty: paste macOS screenshots into the terminal with Cmd+V.
 #
-# Installs a LaunchAgent running src/snaptty-agent.swift, which puts every new
+# Installs a LaunchAgent running snaptty.app (built from src/), which puts every new
 # screenshot on the clipboard as its file path (plus the PNG data), wherever
 # macOS saves it, and does the same for image-only clipboard content.
 #
-#   snaptty install [--no-clipboard]   build the agent and start it
+#   snaptty install [--no-clipboard]   build the app and start the agent
 #   snaptty uninstall                  stop the agent and remove its files
 set -euo pipefail
 
@@ -14,25 +14,39 @@ support_dir="$HOME/Library/Application Support/snaptty"
 cache_dir="$HOME/Library/Caches/snaptty"
 log_file="$HOME/Library/Logs/snaptty.log"
 plist="$HOME/Library/LaunchAgents/${label}.plist"
-agent_bin="${support_dir}/snaptty-agent"
-agent_hash="${support_dir}/snaptty-agent.sha256"
+app_dir="${support_dir}/snaptty.app"
+agent_bin="${app_dir}/Contents/MacOS/snaptty"
+build_hash="${support_dir}/build.sha256"
 source_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-agent_source="${source_dir}/src/snaptty-agent.swift"
+build_inputs=(
+  "${source_dir}/src/snaptty-agent.swift"
+  "${source_dir}/src/Info.plist"
+  "${source_dir}/assets/snaptty.icns"
+)
 
-# macOS ties folder access (Desktop, Documents, Downloads) to the exact build,
-# so the agent is rebuilt only when its source changes.
-build_agent() {
-  local source_hash
-  source_hash="$(shasum -a 256 "$agent_source" | cut -d' ' -f1)"
+# The agent runs as an app bundle so Login Items and the folder access prompt
+# show its name and icon. macOS ties folder access (Desktop, Documents,
+# Downloads) to the exact build, so the app is rebuilt only when its inputs
+# change.
+build_app() {
+  local inputs_hash current_hash
+  inputs_hash="$(cat "${build_inputs[@]}" | shasum -a 256 | cut -d' ' -f1)"
+  current_hash="$(cat "$build_hash" 2>/dev/null || true)"
 
-  if [ -x "$agent_bin" ] && [ "$(cat "$agent_hash" 2>/dev/null)" = "$source_hash" ]; then
-    echo "agent up to date: ${agent_bin}"
+  if [ -x "$agent_bin" ] && [ "$current_hash" = "$inputs_hash" ]; then
+    echo "app up to date: ${app_dir}"
     return
   fi
 
-  swiftc -O "$agent_source" -o "$agent_bin"
-  printf '%s' "$source_hash" > "$agent_hash"
-  echo "agent built: ${agent_bin}"
+  rm -rf "$app_dir"
+  mkdir -p "${app_dir}/Contents/MacOS" "${app_dir}/Contents/Resources"
+  swiftc -O "${source_dir}/src/snaptty-agent.swift" -o "$agent_bin"
+  cp "${source_dir}/src/Info.plist" "${app_dir}/Contents/Info.plist"
+  cp "${source_dir}/assets/snaptty.icns" "${app_dir}/Contents/Resources/snaptty.icns"
+  codesign --force --sign - "$app_dir"
+
+  printf '%s' "$inputs_hash" > "$build_hash"
+  echo "app built: ${app_dir}"
 }
 
 write_plist() {
@@ -51,6 +65,10 @@ write_plist() {
   <key>ProgramArguments</key>
   <array>
 ${args}  </array>
+  <key>AssociatedBundleIdentifiers</key>
+  <array>
+    <string>${label}</string>
+  </array>
   <key>RunAtLoad</key>
   <true/>
   <key>KeepAlive</key>
@@ -77,7 +95,7 @@ install() {
   esac
 
   mkdir -p "$support_dir" "$cache_dir" "$(dirname "$plist")" "$(dirname "$log_file")"
-  build_agent
+  build_app
   write_plist "${agent_args[@]}"
 
   launchctl bootout "gui/$(id -u)/${label}" 2>/dev/null || true

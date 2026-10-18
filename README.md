@@ -1,3 +1,5 @@
+<p align="center"><img src="assets/snaptty.png" alt="snaptty icon" width="128" height="128"></p>
+
 # snaptty
 
 Paste macOS screenshots into the terminal with `Cmd+V`.
@@ -29,9 +31,9 @@ cd snaptty
 ./snaptty install
 ```
 
-`install` compiles the agent into `~/Library/Application Support/snaptty/` and loads it, so the checkout can be moved or deleted afterwards. Re-run it to update or to switch options; the agent is rebuilt only when its source changes.
+`install` builds the agent as `snaptty.app` in `~/Library/Application Support/snaptty/` and loads it, so the checkout can be moved or deleted afterwards. Re-run it to update or to switch options; the app is rebuilt only when its source, `Info.plist` or icon changes.
 
-When screenshots are saved to a protected folder (Desktop, the default, or Documents or Downloads), macOS asks once whether "snaptty-agent" may access it. Allow it: Spotlight leaves out files in protected folders for apps without access. macOS asks again after an update that changes the agent's source. To review the permission later, open System Settings → Privacy & Security → Files & Folders.
+When screenshots are saved to a protected folder (Desktop, the default, or Documents or Downloads), macOS asks once whether "snaptty" may access it. Allow it: Spotlight leaves out files in protected folders for apps without access. macOS asks again after an update that rebuilds the app. To review the permission later, open System Settings → Privacy & Security → Files & Folders.
 
 To skip clipboard images and handle only the shortcuts that save a file:
 
@@ -54,6 +56,7 @@ This stops the agent and removes its files and cache. The log is left in place.
 - **Changing the save location.** The agent asks for folder access when it starts, so re-run `install` after moving screenshots to another protected folder.
 - **Clipboard contents.** Each screenshot replaces whatever was on the clipboard.
 - **Log.** `~/Library/Logs/snaptty.log`
+- **Icon.** `assets/snaptty.icns` is built from `assets/snaptty.png` with `scripts/make-icon.sh`.
 
 ## License
 
