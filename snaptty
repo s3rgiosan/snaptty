@@ -1,0 +1,105 @@
+#!/usr/bin/env bash
+# snaptty: paste macOS screenshots into the terminal with Cmd+V.
+#
+# Installs a LaunchAgent running src/snaptty-agent.swift, which puts every new
+# screenshot on the clipboard as its file path (plus the PNG data), wherever
+# macOS saves it, and does the same for image-only clipboard content.
+#
+#   snaptty install [--no-clipboard]   build the agent and start it
+#   snaptty uninstall                  stop the agent and remove its files
+set -euo pipefail
+
+label="com.s3rgiosan.snaptty"
+support_dir="$HOME/Library/Application Support/snaptty"
+cache_dir="$HOME/Library/Caches/snaptty"
+log_file="$HOME/Library/Logs/snaptty.log"
+plist="$HOME/Library/LaunchAgents/${label}.plist"
+agent_bin="${support_dir}/snaptty-agent"
+agent_hash="${support_dir}/snaptty-agent.sha256"
+source_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+agent_source="${source_dir}/src/snaptty-agent.swift"
+
+# macOS ties folder access (Desktop, Documents, Downloads) to the exact build,
+# so the agent is rebuilt only when its source changes.
+build_agent() {
+  local source_hash
+  source_hash="$(shasum -a 256 "$agent_source" | cut -d' ' -f1)"
+
+  if [ -x "$agent_bin" ] && [ "$(cat "$agent_hash" 2>/dev/null)" = "$source_hash" ]; then
+    echo "agent up to date: ${agent_bin}"
+    return
+  fi
+
+  swiftc -O "$agent_source" -o "$agent_bin"
+  printf '%s' "$source_hash" > "$agent_hash"
+  echo "agent built: ${agent_bin}"
+}
+
+write_plist() {
+  local arg args=""
+  for arg in "$@"; do
+    args+="    <string>${arg}</string>"$'\n'
+  done
+
+  cat > "$plist" <<PLIST
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>${label}</string>
+  <key>ProgramArguments</key>
+  <array>
+${args}  </array>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <true/>
+  <key>StandardOutPath</key>
+  <string>${log_file}</string>
+  <key>StandardErrorPath</key>
+  <string>${log_file}</string>
+</dict>
+</plist>
+PLIST
+}
+
+install() {
+  local agent_args=("$agent_bin" "$cache_dir")
+
+  case "${1:-}" in
+    --no-clipboard) agent_args+=(--no-clipboard) ;;
+    "") ;;
+    *)
+      echo "unknown option: $1" >&2
+      exit 1
+      ;;
+  esac
+
+  mkdir -p "$support_dir" "$cache_dir" "$(dirname "$plist")" "$(dirname "$log_file")"
+  build_agent
+  write_plist "${agent_args[@]}"
+
+  launchctl bootout "gui/$(id -u)/${label}" 2>/dev/null || true
+  launchctl bootstrap "gui/$(id -u)" "$plist"
+
+  echo "agent loaded: ${plist}"
+  echo "log: ${log_file}"
+}
+
+uninstall() {
+  launchctl bootout "gui/$(id -u)/${label}" 2>/dev/null || true
+  rm -f "$plist"
+  rm -rf "$support_dir" "$cache_dir"
+
+  echo "agent removed; ${log_file} was left in place"
+}
+
+case "${1:-}" in
+  install) install "${2:-}" ;;
+  uninstall) uninstall ;;
+  *)
+    echo "usage: $(basename "$0") install [--no-clipboard] | uninstall" >&2
+    exit 1
+    ;;
+esac
