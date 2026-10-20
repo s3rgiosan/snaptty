@@ -1,4 +1,9 @@
-<p align="center"><img src="assets/snaptty.png" alt="snaptty icon" width="128" height="128"></p>
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/snaptty-dark.png">
+    <img src="assets/snaptty.png" alt="snaptty icon" width="128" height="128">
+  </picture>
+</p>
 
 # snaptty
 
@@ -56,7 +61,7 @@ This stops the agent and removes its files and cache. The log is left in place.
 - **Changing the save location.** The agent asks for folder access when it starts, so re-run `install` after moving screenshots to another protected folder.
 - **Clipboard contents.** Each screenshot replaces whatever was on the clipboard.
 - **Log.** `~/Library/Logs/snaptty.log`
-- **Icon.** `assets/snaptty.icns` is built from `assets/snaptty.png` with `scripts/make-icon.sh`.
+- **Icon.** `assets/snaptty.icns` is built from `assets/snaptty.png` with `scripts/make-icon.sh`. `assets/snaptty-dark.png` is the dark variant shown in this README.
 
 ## License
 

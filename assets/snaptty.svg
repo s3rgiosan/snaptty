@@ -19,12 +19,9 @@
 <path d="M284.0,100.0 H740.0 C924.0,100.0 924.0,100.0 924.0,284.0 V740.0 C924.0,924.0 924.0,924.0 740.0,924.0 H284.0 C100.0,924.0 100.0,924.0 100.0,740.0 V284.0 C100.0,100.0 100.0,100.0 284.0,100.0 Z" fill="url(#bg-snaptty-light)" filter="url(#shadow-snaptty-light)"/>
 <path d="M284.0,100.0 H740.0 C924.0,100.0 924.0,100.0 924.0,284.0 V740.0 C924.0,924.0 924.0,924.0 740.0,924.0 H284.0 C100.0,924.0 100.0,924.0 100.0,740.0 V284.0 C100.0,100.0 100.0,100.0 284.0,100.0 Z" fill="url(#sheen-snaptty-light)"/>
 <path d="M284.0,100.0 H740.0 C924.0,100.0 924.0,100.0 924.0,284.0 V740.0 C924.0,924.0 924.0,924.0 740.0,924.0 H284.0 C100.0,924.0 100.0,924.0 100.0,740.0 V284.0 C100.0,100.0 100.0,100.0 284.0,100.0 Z" fill="none" stroke="#FFFFFF" stroke-opacity="0.10" stroke-width="4" clip-path="url(#clip-snaptty-light)"/>
-<g filter="url(#inkshadow-snaptty-light)">
-<g fill="none" stroke="#F5F2EC" stroke-width="64" stroke-linecap="round" stroke-linejoin="round">
-  <rect x="262" y="270" width="500" height="520" rx="60"/>
-  <rect x="412" y="222" width="200" height="110" rx="40" fill="#F5F2EC" stroke="none"/>
-  <path d="M396,460 L490,560 L396,660"/>
-  <rect x="530" y="628" width="130" height="64" rx="32.0" fill="#F5F2EC" stroke="none"/>
-</g>
+<g filter="url(#inkshadow-snaptty-light)"><g fill="none" stroke="#F5F2EC" stroke-linecap="round" stroke-linejoin="round">
+  <g stroke-width="64"><path d="M801.8,589.6 A300,300 0 0 1 589.6,801.8"/><path d="M434.4,801.8 A300,300 0 0 1 222.2,589.6"/><path d="M222.2,434.4 A300,300 0 0 1 434.4,222.2"/><path d="M589.6,222.2 A300,300 0 0 1 801.8,434.4"/></g>
+  <path d="M390,410 L492,512 L390,614" stroke-width="72"/>
+  <rect x="534" y="584" width="118" height="64" rx="32" fill="#F5F2EC" stroke="none" opacity="0.5"/></g>
 </g>
 </svg>
